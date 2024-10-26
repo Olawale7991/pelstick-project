@@ -13,7 +13,7 @@ import Footer from './components/Footer'
 
 const App = () => {
   return (
-    <div className='mx-10 sm:max-[5%]'>
+    <div className='px-5 md:px-20'>
       <Navbar />
       <Routes>
           <Route path='/' element={<Home />} />

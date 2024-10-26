@@ -6,6 +6,7 @@ import {AppContext} from '../context/AppContext'
 const Doctors = () => {
   const {speciality} = useParams();
   const navigate = useNavigate();
+  const [showFilter, setShowFilter] =useState(false)
 
   const [filterDoc, setFilterDoc] = useState([]);
   
@@ -27,7 +28,8 @@ const Doctors = () => {
     <div>
         <p className='text-gray-600'>Browse through the caregivers specialist</p>
         <div className='flex flex-col sm:flex-row items-start gap-5 mt-5'>
-          <div className='flex flex-col gap-4 text-sm text-gray-600'>
+          <button className={`py-1 px-3 border rounded text-sm transition-all sm:hidden ${showFilter ? 'bg-primary text-white' : ''}`} onClick={()=> setShowFilter(prev => !prev)}>Filters</button>
+          <div className={`flex-col gap-4 text-sm text-gray-600 ${showFilter ? 'flex' : 'hidden sm:flex'}`}>
             <p onClick={()=> speciality === 'Family caregiver' ? navigate('/doctors') : navigate('/doctors/Family caregiver')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${speciality === 'Family caregiver' ? 'bg-indigo-100 text-black' : ''}`}>Family caregiver</p>
             <p onClick={()=> speciality === 'Volunteer caregiver' ? navigate('/doctors') : navigate('/doctors/Volunteer caregiver')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${speciality === 'Volunteer caregiver' ? 'bg-indigo-100 text-black' : ''}`}>Volunteer caregiver</p>
             <p onClick={()=> speciality === 'Independent caregiver' ? navigate('/doctors') : navigate('/doctors/Independent caregiver')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${speciality === 'Independent caregiver' ? 'bg-indigo-100 text-black' : ''}`}>Independent caregiver</p>
