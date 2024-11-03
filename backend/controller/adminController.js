@@ -77,4 +77,18 @@ const loginAdmin = async (req, res) =>{
     }
 }
 
-export {addCaregiver, loginAdmin}
+//API for admin add-caregiver
+
+const allCaregivers =async (req, res) => {
+    try {
+        const caregivers = await caregiverModel.find({}).select('-password')
+        res.json({ success:true, caregivers })
+
+    } catch (error) {
+        console.log(error);
+        
+        res.json({success:false, message:error.message})
+    }
+}
+
+export {addCaregiver, loginAdmin, allCaregivers}
