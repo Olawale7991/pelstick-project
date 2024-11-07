@@ -3,6 +3,9 @@ import bcrypt from 'bcrypt'
 import userModel from "../models/userModel.js";
 import jwt from 'jsonwebtoken'
 import {v2 as cloudinary} from 'cloudinary'
+import caregiverModel from "../models/caregiverModel.js";
+import appointmentModel from "../models/appointmentModel.js";
+
 
 
 // API for user registration
@@ -11,15 +14,15 @@ const registerUser = async (req, res) => {
         const {name, email, password} = req.body
 
         if(!name || !email || !password) {
-            return res.status(400).json({success: false, message: 'Please fill in all fields' });
+            return res.json({success: false, message: 'Please fill in all fields' });
         }
 
         if (!validator.isEmail(email)) {
-            return res.status(400).json({success: false, message: 'Please enter a valid email' });
+            return res.json({success: false, message: 'Please enter a valid email' });
 
         }
         if (password.length < 8) {
-            return res.status(400).json({success: false, message: 'Please enter a strong password' });
+            return res.json({success: false, message: 'Please enter a strong password' });
         }
 
         // hashing the user password
@@ -41,7 +44,7 @@ const registerUser = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({success: false, message: error.message})
+        return res.json({success: false, message: error.message})
     }
 }
 
@@ -51,25 +54,25 @@ const loginUser = async (req, res) => {
         const {email, password} = req.body;
         
         if(!email || !password) {
-            return res.status(400).json({success: false, message: 'Please fill in all fields' });
+            return res.json({success: false, message: 'Please fill in all fields' });
         }
         const user = await userModel.findOne({email})
 
         if(!user) {
-            return res.status(404).json({success: false, message: 'User not found' });
+            return res.json({success: false, message: 'User not found' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password)
 
         if (isMatch) {
             const token = jwt.sign({id:user._id}, process.env.JWT_SECRET)
-            return res.status(200).json({success:true, token})
+            return res.json({success:true, token})
         } else {
-            return res.status(400).json({success:false, message:"invalid email or password"})
+            return res.json({success:false, message:"invalid email or password"})
         }
     } catch (error) {
         console.log(error);
-        return res.status(500).json({success: false, message: error.message})
+        return res.json({success: false, message: error.message})
     }
 }
 
@@ -82,7 +85,7 @@ const getProfile = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({success: false, message: error.message})
+        return res.json({success: false, message: error.message})
     }
 }
 
@@ -111,7 +114,110 @@ const updateProfile = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({success: false, message: error.message})
+        return res.json({success: false, message: error.message})
     }
 }
-export {registerUser, loginUser, getProfile, updateProfile}
+
+// API to book user appointment with caregiver
+const bookAppointment = async (req, res)=> {
+
+    try {
+
+        const {userId, docId, slotDate, slotTime} = req.body
+
+        const docData = await caregiverModel.findById(docId).select('-password')
+
+        if(!docData.available) {
+            return res.json({success: false, message: 'Caregiver is not available at this time' });
+        }
+
+        let slots_booked = docData.slots_booked
+
+        //checking if caregiver slot available
+        if(slots_booked[slotDate]) {
+            if (slots_booked[slotDate].includes(slotTime)) {
+                return res.json({success: false, message: 'slot is not available at this time' });
+            } else {
+                slots_booked[slotDate].push(slotTime)
+            } 
+        } else {
+            slots_booked[slotDate] = []
+            slots_booked[slotDate].push(slotTime)
+        }
+
+        const userData = await userModel.findById(userId).select('-password')
+
+        delete docData.slots_booked
+
+        const appointmentsData = {
+            userId,
+            docId,
+            userData,
+            docData,
+            amount: docData.fees,
+            slotTime,
+            slotDate,
+            date: Date.now()
+        }
+
+        const newAppointment = new appointmentModel(appointmentsData)
+
+        await newAppointment.save()
+        
+        //  save new slots data in docdata
+        await caregiverModel.findByIdAndUpdate(docId, {slots_booked})
+        res.json({success: true, message: 'Appointment Booked'})
+        
+    } catch (error) {
+        console.log(error);
+        return res.json({success: false, message: error.message})
+    }
+}
+
+// fetching the API for user-appointment page(frontend)
+
+const listAppointment = async (req, res) => {
+    try {
+        
+        const {userId} = req.body
+        const appointments = await appointmentModel.find({userId})
+
+        res.json({success: true, appointments})
+
+    } catch (error) {
+        console.log(error);
+        return res.json({success: false, message: error.message})
+    }
+}
+
+// API to cancel appointment
+
+const cancelAppointment = async (req, res) => {
+    try {
+        const {userId, appointmentId} = req.body
+
+        const appointmentData = await appointmentModel.findById(appointmentId)
+
+        if(appointmentData.userId!= userId) {
+            return res.json({success: false, message: 'Unauthorized user' });
+        }
+
+        await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled:true})
+
+        // releasing doctors slot
+        const {docId, slotDate, slotTime} = appointmentData
+        const docData = await caregiverModel.findById(docId)
+        let slots_booked = docData.slots_booked
+        slots_booked[slotDate] = slots_booked[slotDate].filter(time => time!== slotTime)
+
+        await caregiverModel.findByIdAndUpdate(docId, {slots_booked})
+        res.json({success: true, message: 'Appointment Cancelled'})
+
+    } catch (error) {
+        console.log(error);
+        return res.json({success: false, message: error.message})
+    }
+}
+
+
+export {registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment}

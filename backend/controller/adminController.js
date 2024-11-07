@@ -3,6 +3,9 @@ import bcrypt from 'bcrypt'
 import {v2 as cloudinary} from 'cloudinary'
 import caregiverModel from "../models/caregiverModel.js"
 import jwt from 'jsonwebtoken'
+import appointmentModel from "../models/appointmentModel.js"
+import userModel from "../models/userModel.js"
+
 
 
 //API for adding caregivers
@@ -12,17 +15,17 @@ const addCaregiver = async (req, res) => {
         const imageFile = req.file;
 
         if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
-            return res.status(400).json({ success: false, message: 'Please fill in all fields' });
+            return res.json({ success: false, message: 'Please fill in all fields' });
         }
 
         // Email validation
         if (!validator.isEmail(email)) {
-            return res.status(400).json({ success: false, message: 'Please enter a valid email format' });
+            return res.json({ success: false, message: 'Please enter a valid email format' });
         }
 
         // Password validation
         if (password.length < 8) {
-            return res.status(400).json({ success: false, message: 'Please enter a strong password' });
+            return res.json({ success: false, message: 'Please enter a strong password' });
         }
 
         // Hashing password
@@ -54,7 +57,7 @@ const addCaregiver = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ success: false, message: error.message });
+        return res.json({ success: false, message: error.message });
     }
 }
 
@@ -65,15 +68,15 @@ const loginAdmin = async (req, res) =>{
 
         if(email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD){
             const token = jwt.sign(email+password, process.env.JWT_SECRET)
-            return res.status(200).json({success:true,token})
+            return res.json({success:true,token})
 
         } else{
-          return res.status(400).json({success:false,message:"invalid email or password"})
+          return res.json({success:false,message:"invalid email or password"})
         }
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({success:false,message: error.message})
+        return res.json({success:false,message: error.message})
     }
 }
 
@@ -86,9 +89,74 @@ const allCaregivers =async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        
         res.json({success:false, message:error.message})
     }
 }
 
-export {addCaregiver, loginAdmin, allCaregivers}
+//API to get all appointment list
+const appointmentsAdmin = async (req, res) =>{
+    try {
+
+        const appointments = await appointmentModel.find({})
+        res.json({success:true, appointments})
+
+        
+    } catch (error) {
+        console.log(error);
+        res.json({success:false, message:error.message})
+    }
+}
+
+// API to cancel appointment
+
+const appointmentCancel = async (req, res) => {
+    try {
+        const { appointmentId } = req.body
+
+        const appointmentData = await appointmentModel.findById(appointmentId)
+
+        await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled:true})
+
+        // releasing doctors slot
+        const {docId, slotDate, slotTime} = appointmentData
+        const docData = await caregiverModel.findById(docId)
+        let slots_booked = docData.slots_booked
+        slots_booked[slotDate] = slots_booked[slotDate].filter(time => time!== slotTime)
+
+        await caregiverModel.findByIdAndUpdate(docId, {slots_booked})
+        res.json({success: true, message: 'Appointment Cancelled'})
+
+    } catch (error) {
+        console.log(error);
+        return res.json({success: false, message: error.message})
+    }
+}
+
+//API to get dashboard data for admin
+
+const adminDashboard = async (req, res) => {
+
+    try {
+
+        const caregivers = await caregiverModel.find({})
+        const users = await userModel.find({})
+        const appointments = await appointmentModel.find({})
+
+        const dashData = {
+            caregivers : caregivers.length,
+            appointments : appointments.length,
+            patients : users.length,
+            latestAppointment : appointments.reverse().slice(0, 5)
+        }
+
+        res.json({success: true, dashData})
+        
+    } catch (error) {
+        console.log(error);
+        return res.json({success: false, message: error.message})
+        
+    }
+}
+
+
+export {addCaregiver, loginAdmin, allCaregivers, appointmentsAdmin, appointmentCancel, adminDashboard}
