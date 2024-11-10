@@ -120,6 +120,81 @@ const cancelAppointment = async (req, res) => {
     }
 }
 
+// API to get dashboard data for caregiver panel
+const caregiverDashboard = async (req, res) => {
+    try {
+        
+
+        const {docId} = req.body
+
+        const appointments = await appointmentModel.find({docId})
+
+        let earnings = 0
+
+        appointments.map((item)=> {
+            if (item.isCompleted || item.payment) {
+                earnings += item.amount
+                
+            }
+        })
+
+        let patients = []
+        appointments.map((item)=> {
+
+            if (!patients.includes(item.userId)) {
+                patients.push(item.userId)
+            }
+            
+        })
+
+        const dashData = {
+            earnings,
+            appointments : appointments.length,
+            patients : patients.length,
+            latestAppointment : appointments.reverse().slice(0, 5)
+        }
+        res.json({success: true, dashData}) 
+
+    } catch (error) {
+        console.log(error);
+        res.json({success:false, message:error.message})
+        
+    }
+}
+
+// API to get caregiver profile from panel
+
+const caregiverProfile = async (req, res) => {
+
+    try {
+
+        const {docId} = req.body
+        const profileData = await caregiverModel.findById(docId).select('-password')
+        res.json({success: true, profileData})
+        
+    } catch (error) {
+        console.log(error);
+        res.json({success:false, message:error.message})
+    }
+}
+
+// API to update caregiver profile from panel
+
+const updateCaregiverProfile = async (req, res) => {
+
+    try {
+        
+        const {docId, fees, address, available} = req.body
+
+        await caregiverModel.findByIdAndUpdate(docId,{fees, address, available})
+        res.json({success: true, message: 'Profile updated successfully'})
+
+    } catch (error) {
+        console.log(error);
+        res.json({success:false, message:error.message})
+    }
+}
 
 
-export {changeAvailability, doctorList, caregiverLogins, caregiverAppointments, cancelAppointment, markAppointment }
+
+export {changeAvailability, doctorList, caregiverLogins, caregiverAppointments, cancelAppointment, markAppointment, caregiverDashboard, caregiverProfile, updateCaregiverProfile, }
