@@ -1,6 +1,6 @@
 import express from 'express'
 
-import { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment } from '../controller/userController.js'
+import { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, sendPasswordResetEmail, resetPassword } from '../controller/userController.js'
 import authUser from '../middlewares/authUser.js'
 import upload from '../middlewares/multer.js'
 
@@ -14,6 +14,9 @@ userRouter.post('/book-appointment', authUser, bookAppointment)
 userRouter.get('/user-appointment',authUser, listAppointment)
 
 userRouter.post('/cancel-appointment', authUser, cancelAppointment)
+
+userRouter.post('/request-password-reset', sendPasswordResetEmail); // For requesting password reset
+userRouter.post('/reset-password', resetPassword);                 // For setting new password
 
 
 export default userRouter

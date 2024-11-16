@@ -20,7 +20,7 @@ const Login = () => {
       try {
         if (state === 'Sign Up') {
 
-          const { data } = await axios.post(`${backendUrl}/api/user/register`, { password, email });
+          const { data } = await axios.post(`${backendUrl}/api/user/register`, { name, password, email });
           if (data.success) {
             localStorage.setItem('token', data.token)
             setToken(data.token)
@@ -76,11 +76,19 @@ const Login = () => {
             <input className='border border-zinc-300 rounded w-full p-2 m-1' type="password" onChange={(e)=>setPassword(e.target.value)} value={password} required/>
           </div>
           <button type='submit' className='bg-primary text-white w-full py-2 rounded-md text-base'>{state === 'Sign Up' ? 'Create Account' : 'Login'}</button>
+          
+          {
+            state !== 'Sign Up' && <div className='w-full'>
+              <p className='text text-center w-full'>Or</p>
+              <a className='text-primary w-full py-2 rounded-md text-base text-center hover:text-lg' href="https://pelstick-project-7eng.vercel.app/">Admin Login</a>
+            </div>
+          }
         {
           state == 'Sign Up' ?
           <p>Already have an account? <span onClick={()=>setState('Login')} className='text-primary underline cursor-pointer'>Login here</span></p> :
           <p>Create a new account? <span onClick={()=>setState('Sign Up')} className='text-primary underline cursor-pointer'>click here</span> </p>
         }
+        
         </div>
     </form>
   )

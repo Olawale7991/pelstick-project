@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import {v2 as cloudinary} from 'cloudinary'
 import caregiverModel from "../models/caregiverModel.js";
 import appointmentModel from "../models/appointmentModel.js";
+import transporter from "../config/mailer.js";
 
 
 
@@ -14,7 +15,7 @@ const registerUser = async (req, res) => {
         const {name, email, password} = req.body
 
         if(!name || !email || !password) {
-            return res.json({success: false, message: 'Please fill in all fields' });
+            return res.json({success: false, message: 'please fill the required' });
         }
 
         if (!validator.isEmail(email)) {
@@ -220,4 +221,59 @@ const cancelAppointment = async (req, res) => {
 }
 
 
-export {registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment}
+
+const sendPasswordResetEmail = async (req, res) => {
+    try {
+      const { email } = req.body;
+      const user = await userModel.findOne({ email });
+  
+      if (!user) {
+        return res.json({ success: false, message: 'User not found' });
+      }
+  
+      const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      
+      // Send email with reset link
+      const resetLink = `https://pelstick-project-frontends.vercel.app//reset-password?token=${resetToken}`;
+      const mailOptions = {
+        from: 'jklhealthcare47@gmail.com',
+        to: email,
+        subject: 'Password Reset Request',
+        text: `Please click the link to reset your password: ${resetLink}`
+      };
+  
+      await transporter.sendMail(mailOptions);
+      res.json({ success: true, message: 'Password reset email sent' });
+      
+
+    } catch (error) {
+      console.error(error);
+      res.json({ success: false, message: error.message });
+    }
+  };
+
+
+  const resetPassword = async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+  
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.id;
+  
+      // Hash the new password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+  
+      // Update user's password
+      await userModel.findByIdAndUpdate(userId, { password: hashedPassword });
+      res.json({ success: true, message: 'Password has been reset successfully' });
+    } catch (error) {
+      console.error(error);
+      res.json({ success: false, message: error.message });
+    }
+  };
+  
+
+
+export {registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, sendPasswordResetEmail, resetPassword}
