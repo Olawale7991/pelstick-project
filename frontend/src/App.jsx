@@ -12,6 +12,8 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import { ToastContainer, toast } from 'react-toastify';
   import 'react-toastify/dist/ReactToastify.css';
+import ResetPassword from './pages/ResetPassword'
+import PasswordResetRequest from './pages/PasswordResetRequest'
 
 const App = () => {
   return (
@@ -28,6 +30,8 @@ const App = () => {
           <Route path='/appointment/:docId' element={<Appointments />} />
           <Route path='/user-appointments' element={<UserAppointments />} />
           <Route path='/contact' element={<Contact />} />
+          <Route path='/reset-password' element={<ResetPassword />} />
+          <Route path='/password-reset-request' element={<PasswordResetRequest />} />
       </Routes>
       <Footer />
     </div>

@@ -234,17 +234,21 @@ const sendPasswordResetEmail = async (req, res) => {
       const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
       
       // Send email with reset link
-      const resetLink = `https://pelstick-project-frontends.vercel.app//reset-password?token=${resetToken}`;
+      const resetLink = `http://localhost:5173/reset-password?token=${resetToken}`;
       const mailOptions = {
-        from: 'jklhealthcare47@gmail.com',
+        from: 'babatund5@coventry.ac.uk',
         to: email,
         subject: 'Password Reset Request',
-        text: `Please click the link to reset your password: ${resetLink}`
+        html: `
+        <p>Hello,</p>
+        <p>You requested a password reset. Click the link below to reset your password:</p>
+        <a href="${resetLink}" style="color: blue; text-decoration: underline;">Reset Password</a>
+        <p>If you did not request this, please ignore this email.</p>
+      `
       };
   
       await transporter.sendMail(mailOptions);
       res.json({ success: true, message: 'Password reset email sent' });
-      
 
     } catch (error) {
       console.error(error);
