@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const { backendUrl, token, setToken } = useContext(AppContext);
@@ -99,9 +99,7 @@ const Login = () => {
           {state === "Sign Up" ? "Create Account" : "Login"}
         </button>
 
-        <p className="text-primary underline cursor-pointer">
-          <a href="/password-reset-request">Forgot Password?</a>
-        </p>
+          <NavLink className='text-primary underline cursor-pointer' to='/password-reset-request'>Forgot Password?</NavLink>
 
         {state !== "Sign Up" && (
           <div className="w-full">
