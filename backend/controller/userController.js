@@ -234,7 +234,7 @@ const sendPasswordResetEmail = async (req, res) => {
       const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
       
       // Send email with reset link
-      const resetLink = `https://pelstick-project-frontends.vercel.app/reset-password?token=${resetToken}`;
+      const resetLink = `http://localhost:5173/reset-password?token=${resetToken}`;
       const mailOptions = {
         from: 'babatund5@coventry.ac.uk',
         to: email,
