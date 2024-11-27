@@ -13,16 +13,15 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Function to validate password
   const validatePassword = (password) => {
-    const specialCharRegex = /[!@#$%^&*(),.?":{}|+-<>|=~`]/;  
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|+-<>|=~`]/;
     return specialCharRegex.test(password);
   };
 
   const onPasswordChange = (value) => {
     setPassword(value);
-
     if (!validatePassword(value)) {
       setError('Password must contain at least one special character.');
     } else {
@@ -43,6 +42,7 @@ const Login = () => {
         if (data.success) {
           localStorage.setItem('token', data.token);
           setToken(data.token);
+          navigate('/');
         } else {
           toast.error(data.message);
         }
@@ -51,6 +51,7 @@ const Login = () => {
         if (data.success) {
           localStorage.setItem('token', data.token);
           setToken(data.token);
+          navigate('/');
         } else {
           toast.error(data.message);
         }
@@ -87,15 +88,21 @@ const Login = () => {
             required
           />
         </div>
-        <div className="w-full">
+        <div className="w-full relative">
           <p>Password</p>
           <input
             className="border border-zinc-300 rounded w-full p-2 m-1"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             onChange={(e) => onPasswordChange(e.target.value)}
             value={password}
             required
           />
+          <span
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-[42px] cursor-pointer text-gray-600"
+          >
+            <i className={`fas ${showPassword ? 'fa-eye-slash text-red-500' : 'fa-eye text-primary'}`}></i>
+          </span>
           {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
         </div>
         <button

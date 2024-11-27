@@ -93,6 +93,19 @@ const allCaregivers =async (req, res) => {
     }
 }
 
+// API to get all users
+
+const allUsers = async (req, res) => {
+    try {
+        const users = await userModel.find({}).select('-password')
+        res.json({ success:true, users })
+
+    } catch (error) {
+        console.log(error);
+        res.json({success:false, message:error.message})
+    }
+}
+
 //API to get all appointment list
 const appointmentsAdmin = async (req, res) =>{
     try {
@@ -158,5 +171,4 @@ const adminDashboard = async (req, res) => {
     }
 }
 
-
-export {addCaregiver, loginAdmin, allCaregivers, appointmentsAdmin, appointmentCancel, adminDashboard}
+export {addCaregiver, loginAdmin, allCaregivers, appointmentsAdmin, appointmentCancel, adminDashboard, allUsers}
