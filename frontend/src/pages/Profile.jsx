@@ -73,7 +73,7 @@ const Profile = () => {
           <input type="text" value={userData.phone} onChange={(e)=>setUserData(prev => ({...prev,phone:e.target.value}))}/> :
           <p className='text-blue-500'>{userData.phone}</p>
         }
-          <p className='font-medium'>Address:</p>
+          <p className='font-medium'>Health Records:</p>
           {
             isEdit ?
             <p>

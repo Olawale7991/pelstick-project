@@ -56,7 +56,7 @@ const AppContextProvider = (props) => {
     // Set a new timer (5 seconds for testing; change to 900000 for 15 mins in production)
     inactivityTimeoutRef.current = setTimeout(() => {
       if (token) logout(); 
-    }, 50000);
+    }, 100000);
   };
 
   useEffect(() => {

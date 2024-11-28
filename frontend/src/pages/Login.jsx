@@ -42,7 +42,8 @@ const Login = () => {
         if (data.success) {
           localStorage.setItem('token', data.token);
           setToken(data.token);
-          navigate('/');
+          navigate('/profile');
+          toast.success('User registered successfully! kindly update your profile to get started')
         } else {
           toast.error(data.message);
         }
@@ -52,6 +53,7 @@ const Login = () => {
           localStorage.setItem('token', data.token);
           setToken(data.token);
           navigate('/');
+          toast.success('Welcome back!')
         } else {
           toast.error(data.message);
         }
